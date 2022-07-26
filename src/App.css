@@ -7,6 +7,18 @@
   pointer-events: none;
 }
 
+.nav-link a:link, 
+.nav-link a:visited,
+.nav-link a:hover,
+.nav-link a:active {
+  text-decoration: none;
+  color: black;
+}
+
+.nav-link-active {
+  background-color: darkgray !important;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
