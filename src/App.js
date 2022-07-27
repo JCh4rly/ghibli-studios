@@ -10,7 +10,7 @@ import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import { styled, useTheme } from "@mui/material/styles";
-import { Route, Routes, NavLink } from "react-router-dom";
+import { Route, Routes, NavLink, useLocation } from "react-router-dom";
 import Home from "./pages/home/Home";
 import Films from "./pages/films/Films";
 import About from "./pages/about/About";
@@ -90,46 +90,46 @@ const mainPages = [{
   text: 'Films',
   route: '/films',
   icon: <FilmsIcon />
-}]
-
-const otherPages = [{
+}, {
   text: 'About',
   route: '/about',
   icon: <InfoIcon />
 }]
 
-const PageLinks = ({ pages, open }) => pages.map(({ text, icon, route }) => <>
-  <NavLink
-    to={route}
-    className={({ isActive }) =>
-      isActive ? "nav-link-active" : "nav-link"
-    }
-  >
-    <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-      <ListItemButton
-        sx={{
-          minHeight: 48,
-          justifyContent: open ? 'initial' : 'center',
-          px: 2.5,
-        }}
-      >
-        <ListItemIcon
+const PageLinks = ({ pages, open, currentRoute }) => pages.map(({ text, icon, route, divider }) =>
+  <div key={text} className={ route === currentRoute ? "nav-link-active" : ""}>
+    {divider && <Divider />}
+    <NavLink
+      to={route}
+      className="nav-link"
+    >
+      <ListItem disablePadding sx={{ display: 'block' }}>
+        <ListItemButton
           sx={{
-            minWidth: 0,
-            mr: open ? 3 : 'auto',
-            justifyContent: 'center',
+            minHeight: 48,
+            justifyContent: open ? 'initial' : 'center',
+            px: 2.5,
           }}
         >
-          { icon }
-        </ListItemIcon>
-        <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-      </ListItemButton>
-    </ListItem>
-  </NavLink>
-</>);
+          <ListItemIcon
+            sx={{
+              minWidth: 0,
+              mr: open ? 3 : 'auto',
+              justifyContent: 'center',
+            }}
+          >
+            { icon }
+          </ListItemIcon>
+          <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
+        </ListItemButton>
+      </ListItem>
+    </NavLink>
+  </div>
+);
 
 const App = () => {
   const theme = useTheme();
+  const location = useLocation();
   const [open, setOpen] = React.useState(false);
 
   return <>
@@ -163,9 +163,9 @@ const App = () => {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <PageLinks pages={mainPages} open={open} />
-        <Divider />
-        <PageLinks pages={otherPages} open={open} />  
+        <List disablePadding>
+          <PageLinks pages={mainPages} open={open} currentRoute={location.pathname} />
+        </List>
       </Drawer>
 
       {/* Content */}
