@@ -6,9 +6,10 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import ClearIcon from "@mui/icons-material/Clear";
 import Paper from '@mui/material/Paper';
 import useFilms from '../../hooks/useFilms';
-import { Alert, Box, CircularProgress } from '@mui/material';
+import { Alert, Box, CircularProgress, IconButton, TextField } from '@mui/material';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -32,6 +33,34 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const Films = () => {
   const [isLoading, rows, errors] = useFilms();
+  const [filteredRows, setFilteredRows] = React.useState(null);
+  const [filter, setFilter] = React.useState({});
+
+  const renderFieldFilter = React.useCallback((field) => <>
+    <Box sx={{ display: 'flex' }}>
+      <TextField 
+        sx={{ backgroundColor: 'white' }} 
+        size="small" 
+        variant="outlined"
+        value={filter[field]}
+        onChange={(e) => setFilter({ ...filter, [field]: e.target.value })}
+      />
+      <IconButton onClick={() => setFilter({ ...filter, [field]: '' })}>
+        <ClearIcon />
+      </IconButton>
+    </Box>
+  </>, [filter]);
+
+  React.useEffect(() => {
+    const match = (field, item) => !filter[field] || item[field].match(new RegExp(filter[field], 'i'));
+    const filterRows = (item) => 
+      match('title', item) && match('director', item) && match('producer', item)
+
+    if (rows) {
+      setFilteredRows(rows.filter(filterRows));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, rows])
 
   if (isLoading) {
     return <Box sx={{ display: 'flex' }}>
@@ -43,7 +72,11 @@ const Films = () => {
     return <Alert severity="error">An unexpected error occurred!</Alert>
   }
 
-  return (
+  if (!filteredRows) {
+    return null
+  }
+
+  return <>
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
         <TableHead>
@@ -53,10 +86,17 @@ const Films = () => {
             <StyledTableCell align="center">Director</StyledTableCell>
             <StyledTableCell align="center">Producer</StyledTableCell>
             <StyledTableCell align="center">Release Date</StyledTableCell>
-          </TableRow>
+          </TableRow>          
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
+          <StyledTableRow>
+            <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("title") }</StyledTableCell>
+            <StyledTableCell align="center"></StyledTableCell>
+            <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("director") }</StyledTableCell>
+            <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("producer") }</StyledTableCell>
+            <StyledTableCell align="center" sx={{ width: 180 }}><TextField size="small" variant="outlined" /></StyledTableCell>
+          </StyledTableRow>
+          {filteredRows.map((row) => (
             <StyledTableRow key={row.title}>
               <StyledTableCell component="th" scope="row" align="center">
                 {row.title}
@@ -70,7 +110,7 @@ const Films = () => {
         </TableBody>
       </Table>
     </TableContainer>
-  );
+  </>;
 }
 
 export default Films;
