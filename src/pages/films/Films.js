@@ -9,7 +9,7 @@ import TableRow from '@mui/material/TableRow';
 import ClearIcon from "@mui/icons-material/Clear";
 import Paper from '@mui/material/Paper';
 import useFilms from '../../hooks/useFilms';
-import { Alert, Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Slider, TextField } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Slider, TextField } from '@mui/material';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -56,20 +56,20 @@ const Films = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const applyFilter = (filter) => {
-    setReleaseFilter(filter);
+    setReleaseFilter({ ...filter, enabled: true });
     setOpen(false);
   };
+  const disableRangeFilter = () => setReleaseFilter({ ...releaseFilter, enabled: false });
 
-  const RangeViewer = ({ filter, onClick }) => <>
-    <Paper sx={{ textAlign: 'center', p: 1 }} onClick={onClick}>
-      {filter.enabled ?  `${filter.value[0]} - ${filter.value[1]}` : "Any date"}
+  const RangeViewer = ({ filter, onClick, sx }) => <>
+    <Paper variant="outlined" sx={{ textAlign: 'center', p: 1, ...sx }} onClick={onClick}>
+      {filter.enabled ?  `${filter.value[0]} - ${filter.value[1]}` : ""}
     </Paper>
   </>
 
   const RangeFilter = ({ open, value, handleClose, onApplyFilter }) => {
-    const [filter, setFilter] = React.useState(value);
+    const [filter, setFilter] = React.useState({ ...value, enabled: true });
     const setValue = (value) => setFilter({ ...filter, value });
-    const setEnabled = (enabled) => setFilter({ ...filter, enabled });
     const minDistance = 1;
     const min = 1960;
     const max = 2020;
@@ -80,7 +80,7 @@ const Films = () => {
   
       if (newValue[1] - newValue[0] < minDistance) {
         if (activeThumb === 0) {
-          const clamped = Math.min(newValue[0], 100 - minDistance);
+          const clamped = Math.min(newValue[0], max - minDistance);
           setValue([clamped, clamped + minDistance]);
         } else {
           const clamped = Math.max(newValue[1], minDistance);
@@ -95,17 +95,16 @@ const Films = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Release Date Filter</DialogTitle>
         <DialogContent>
+          <DialogContentText>Move markers to set date range</DialogContentText>
           <Box sx={{ display: 'flex', flexDirection: 'column', marginX: 2 }}>
-            <FormControlLabel control={<Checkbox checked={filter.enabled} onChange={(e) => setEnabled(e.target.checked)} />} label="Enabled" />
             <Slider
-              disabled={!filter.enabled}
               min={min}
               max={max}
               value={filter.value}
               onChange={handleChange}
               valueLabelDisplay="auto"
               disableSwap
-              sx={{ marginY: 2 }}
+              sx={{ marginY: 4 }}
               />
             <RangeViewer filter={filter} />  
           </Box>
@@ -166,7 +165,14 @@ const Films = () => {
             <StyledTableCell align="center"></StyledTableCell>
             <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("director") }</StyledTableCell>
             <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("producer") }</StyledTableCell>
-            <StyledTableCell align="center" sx={{ width: 180 }}><RangeViewer filter={releaseFilter} onClick={handleOpen} /></StyledTableCell>
+            <StyledTableCell align="center" sx={{ width: 180 }}>
+              <Box sx={{ display: 'flex' }}>
+                <RangeViewer sx={{ width: '100%' }} filter={releaseFilter} onClick={handleOpen} />
+                <IconButton onClick={disableRangeFilter}>
+                  <ClearIcon />
+                </IconButton>
+              </Box>
+            </StyledTableCell>
           </StyledTableRow>
           {filteredRows.length === 0 && <StyledTableRow>
             <StyledTableCell colSpan={5}>
