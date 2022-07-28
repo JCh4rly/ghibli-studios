@@ -55,8 +55,18 @@ const Films = () => {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const applyFilter = (filter) => {
+    setReleaseFilter(filter);
+    setOpen(false);
+  };
 
-  const RangeFilter = ({ open, value, handleClose }) => {
+  const RangeViewer = ({ filter, onClick }) => <>
+    <Paper sx={{ textAlign: 'center', p: 1 }} onClick={onClick}>
+      {filter.enabled ?  `${filter.value[0]} - ${filter.value[1]}` : "Any date"}
+    </Paper>
+  </>
+
+  const RangeFilter = ({ open, value, handleClose, onApplyFilter }) => {
     const [filter, setFilter] = React.useState(value);
     const setValue = (value) => setFilter({ ...filter, value });
     const setEnabled = (enabled) => setFilter({ ...filter, enabled });
@@ -85,7 +95,7 @@ const Films = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Release Date Filter</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', marginX: 2 }}>
             <FormControlLabel control={<Checkbox checked={filter.enabled} onChange={(e) => setEnabled(e.target.checked)} />} label="Enabled" />
             <Slider
               disabled={!filter.enabled}
@@ -95,13 +105,14 @@ const Films = () => {
               onChange={handleChange}
               valueLabelDisplay="auto"
               disableSwap
-              sx={{ marginX: 2, marginY: 2 }}
+              sx={{ marginY: 2 }}
               />
+            <RangeViewer filter={filter} />  
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleClose}>Apply</Button>
+          <Button onClick={() => onApplyFilter(filter)}>Apply</Button>
         </DialogActions>
       </Dialog>
     </>
@@ -109,14 +120,18 @@ const Films = () => {
 
   React.useEffect(() => {
     const match = (field, item) => !filter[field] || item[field].match(new RegExp(filter[field], 'i'));
-    const filterRows = (item) => 
-      match('title', item) && match('director', item) && match('producer', item)
+    const matchRange = (release_date) => {
+      return (!releaseFilter.enabled || (release_date >= releaseFilter.value[0] && release_date <= releaseFilter.value[1]))
+    };
+    const filterRows = (item) => match('title', item) 
+      && match('director', item) 
+      && match('producer', item) 
+      && matchRange(Number(item.release_date))
 
     if (rows) {
       setFilteredRows(rows.filter(filterRows));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, rows])
+  }, [filter, releaseFilter, rows])
 
   if (isLoading) {
     return <Box sx={{ display: 'flex' }}>
@@ -133,7 +148,7 @@ const Films = () => {
   }
 
   return <>
-    <RangeFilter open={open} value={releaseFilter} handleClose={handleClose} />
+    <RangeFilter open={open} value={releaseFilter} handleClose={handleClose} onApplyFilter={applyFilter} />
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
         <TableHead>
@@ -151,9 +166,14 @@ const Films = () => {
             <StyledTableCell align="center"></StyledTableCell>
             <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("director") }</StyledTableCell>
             <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("producer") }</StyledTableCell>
-            <StyledTableCell align="center" sx={{ width: 180 }}><span onClick={handleOpen}>RANGE</span></StyledTableCell>
+            <StyledTableCell align="center" sx={{ width: 180 }}><RangeViewer filter={releaseFilter} onClick={handleOpen} /></StyledTableCell>
           </StyledTableRow>
-          {filteredRows.map((row) => (
+          {filteredRows.length === 0 && <StyledTableRow>
+            <StyledTableCell colSpan={5}>
+              <Alert severity="info">No results found</Alert>
+            </StyledTableCell>
+          </StyledTableRow>}
+          {filteredRows.length > 0 && filteredRows.map((row) => (
             <StyledTableRow key={row.title}>
               <StyledTableCell component="th" scope="row" align="center">
                 {row.title}
