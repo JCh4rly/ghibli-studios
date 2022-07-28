@@ -9,7 +9,7 @@ import TableRow from '@mui/material/TableRow';
 import ClearIcon from "@mui/icons-material/Clear";
 import Paper from '@mui/material/Paper';
 import useFilms from '../../hooks/useFilms';
-import { Alert, Box, CircularProgress, IconButton, TextField } from '@mui/material';
+import { Alert, Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Slider, TextField } from '@mui/material';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -35,6 +35,8 @@ const Films = () => {
   const [isLoading, rows, errors] = useFilms();
   const [filteredRows, setFilteredRows] = React.useState(null);
   const [filter, setFilter] = React.useState({});
+  const [releaseFilter, setReleaseFilter] = React.useState({ enabled: true, value: [1980, 2000] });
+  const [open, setOpen] = React.useState(false);
 
   const renderFieldFilter = React.useCallback((field) => <>
     <Box sx={{ display: 'flex' }}>
@@ -50,6 +52,60 @@ const Films = () => {
       </IconButton>
     </Box>
   </>, [filter]);
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const RangeFilter = ({ open, value, handleClose }) => {
+    const [filter, setFilter] = React.useState(value);
+    const setValue = (value) => setFilter({ ...filter, value });
+    const setEnabled = (enabled) => setFilter({ ...filter, enabled });
+    const minDistance = 1;
+    const min = 1960;
+    const max = 2020;
+    const handleChange = (event, newValue, activeThumb) => {
+      if (!Array.isArray(newValue)) {
+        return;
+      }
+  
+      if (newValue[1] - newValue[0] < minDistance) {
+        if (activeThumb === 0) {
+          const clamped = Math.min(newValue[0], 100 - minDistance);
+          setValue([clamped, clamped + minDistance]);
+        } else {
+          const clamped = Math.max(newValue[1], minDistance);
+          setValue([clamped - minDistance, clamped]);
+        }
+      } else {
+        setValue(newValue);
+      }
+    };
+
+    return <>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Release Date Filter</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+            <FormControlLabel control={<Checkbox checked={filter.enabled} onChange={(e) => setEnabled(e.target.checked)} />} label="Enabled" />
+            <Slider
+              disabled={!filter.enabled}
+              min={min}
+              max={max}
+              value={filter.value}
+              onChange={handleChange}
+              valueLabelDisplay="auto"
+              disableSwap
+              sx={{ marginX: 2, marginY: 2 }}
+              />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>Apply</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  }
 
   React.useEffect(() => {
     const match = (field, item) => !filter[field] || item[field].match(new RegExp(filter[field], 'i'));
@@ -77,6 +133,7 @@ const Films = () => {
   }
 
   return <>
+    <RangeFilter open={open} value={releaseFilter} handleClose={handleClose} />
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
         <TableHead>
@@ -94,7 +151,7 @@ const Films = () => {
             <StyledTableCell align="center"></StyledTableCell>
             <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("director") }</StyledTableCell>
             <StyledTableCell align="center" sx={{ width: 180 }}>{ renderFieldFilter("producer") }</StyledTableCell>
-            <StyledTableCell align="center" sx={{ width: 180 }}><TextField size="small" variant="outlined" /></StyledTableCell>
+            <StyledTableCell align="center" sx={{ width: 180 }}><span onClick={handleOpen}>RANGE</span></StyledTableCell>
           </StyledTableRow>
           {filteredRows.map((row) => (
             <StyledTableRow key={row.title}>
