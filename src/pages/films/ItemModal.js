@@ -4,7 +4,7 @@ import { Box } from "@mui/system";
 const ItemModal = ({ item, open, handleClose, handleSave }) => {
   return <>
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{ item ? "Edit item" : "New item" }</DialogTitle>
+      <DialogTitle>{ item.id ? "Edit item" : "New item" }</DialogTitle>
       <DialogContent>
         <Box
           component="form"

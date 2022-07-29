@@ -11,7 +11,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import RemoveIcon from "@mui/icons-material/Delete";
 import Paper from '@mui/material/Paper';
 import useFilms from '../../hooks/useFilms';
-import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Slider, TextField } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Slider, TextField, Typography } from '@mui/material';
 import ItemModal from './ItemModal';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -128,6 +128,10 @@ const Films = () => {
   };
   const handleModalClose = () => setModalVisible(false);
   const handleModalSave = (item) => console.log(item);
+  const createNew = () => {
+    setCurrentRow({ title: "", description: "", director: "", producer: "", release_date: 1980 });
+    setModalVisible(true);
+  }
 
   React.useEffect(() => {
     const match = (field, item) => !filter[field] || item[field].match(new RegExp(filter[field], 'i'));
@@ -160,7 +164,11 @@ const Films = () => {
 
   return <>
     <RangeFilter open={open} value={releaseFilter} handleClose={handleClose} onApplyFilter={applyFilter} />
-    <ItemModal item={currentRow} open={modalVisible} handleClose={handleModalClose} handleSave={handleModalSave} />
+    {currentRow && <ItemModal item={currentRow} open={modalVisible} handleClose={handleModalClose} handleSave={handleModalSave} />}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 2 }}>
+      <Typography variant="h4" component="h2">Films</Typography>
+      <Button variant="contained" onClick={createNew}>Create new</Button>
+    </Box>
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
         <TableHead>
