@@ -7,9 +7,12 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import ClearIcon from "@mui/icons-material/Clear";
+import EditIcon from "@mui/icons-material/Edit";
+import RemoveIcon from "@mui/icons-material/Delete";
 import Paper from '@mui/material/Paper';
 import useFilms from '../../hooks/useFilms';
 import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Slider, TextField } from '@mui/material';
+import ItemModal from './ItemModal';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -37,6 +40,8 @@ const Films = () => {
   const [filter, setFilter] = React.useState({});
   const [releaseFilter, setReleaseFilter] = React.useState({ enabled: true, value: [1980, 2000] });
   const [open, setOpen] = React.useState(false);
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [currentRow, setCurrentRow] = React.useState(null);
 
   const renderFieldFilter = React.useCallback((field) => <>
     <Box sx={{ display: 'flex' }}>
@@ -117,6 +122,13 @@ const Films = () => {
     </>
   }
 
+  const editItem = (row) => {
+    setCurrentRow(row);
+    setModalVisible(true);
+  };
+  const handleModalClose = () => setModalVisible(false);
+  const handleModalSave = (item) => console.log(item);
+
   React.useEffect(() => {
     const match = (field, item) => !filter[field] || item[field].match(new RegExp(filter[field], 'i'));
     const matchRange = (release_date) => {
@@ -148,6 +160,7 @@ const Films = () => {
 
   return <>
     <RangeFilter open={open} value={releaseFilter} handleClose={handleClose} onApplyFilter={applyFilter} />
+    <ItemModal item={currentRow} open={modalVisible} handleClose={handleModalClose} handleSave={handleModalSave} />
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
         <TableHead>
@@ -157,6 +170,7 @@ const Films = () => {
             <StyledTableCell align="center">Director</StyledTableCell>
             <StyledTableCell align="center">Producer</StyledTableCell>
             <StyledTableCell align="center">Release Date</StyledTableCell>
+            <StyledTableCell />
           </TableRow>          
         </TableHead>
         <TableBody>
@@ -173,6 +187,7 @@ const Films = () => {
                 </IconButton>
               </Box>
             </StyledTableCell>
+            <StyledTableCell />
           </StyledTableRow>
           {filteredRows.length === 0 && <StyledTableRow>
             <StyledTableCell colSpan={5}>
@@ -188,6 +203,16 @@ const Films = () => {
               <StyledTableCell align="center">{row.director}</StyledTableCell>
               <StyledTableCell align="center">{row.producer}</StyledTableCell>
               <StyledTableCell align="center">{row.release_date}</StyledTableCell>
+              <StyledTableCell>
+                <Box sx={{ display: 'flex' }}>
+                  <IconButton onClick={() => editItem(row)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton>
+                    <RemoveIcon />
+                  </IconButton>
+                </Box>
+              </StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>
