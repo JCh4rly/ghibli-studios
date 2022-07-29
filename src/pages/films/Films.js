@@ -38,7 +38,7 @@ const Films = () => {
   const [isLoading, rows, errors] = useFilms();
   const [filteredRows, setFilteredRows] = React.useState(null);
   const [filter, setFilter] = React.useState({});
-  const [releaseFilter, setReleaseFilter] = React.useState({ enabled: true, value: [1980, 2000] });
+  const [releaseFilter, setReleaseFilter] = React.useState({ enabled: false, value: [1980, 2000] });
   const [open, setOpen] = React.useState(false);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [currentRow, setCurrentRow] = React.useState(null);
